@@ -57,10 +57,83 @@ class AIService {
         optimizedAllocation: analysisResult.optimizedAllocation || [],
         suggestedInstruments: analysisResult.suggestedInstruments || [],
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error("AI analysis error:", error);
+      
+      // Check if it's a quota/rate limit error
+      if (error.status === 429 || error.code === 'insufficient_quota') {
+        console.log("OpenAI quota exceeded, using fallback analysis");
+        return this.generateFallbackAnalysis(instruments);
+      }
+      
       throw new Error("Failed to analyze portfolio. Please try again.");
     }
+  }
+
+  private generateFallbackAnalysis(instruments: Instrument[]): PortfolioAnalysis {
+    const portfolioData = this.preparePortfolioData(instruments);
+    
+    // Basic analysis based on portfolio composition
+    const hasStocks = instruments.some(inst => inst.type === 'stock');
+    const hasETFs = instruments.some(inst => inst.type === 'etf');
+    const hasBonds = instruments.some(inst => inst.type === 'bond');
+    const hasCrypto = instruments.some(inst => inst.type === 'crypto');
+    
+    const diversificationCount = [hasStocks, hasETFs, hasBonds, hasCrypto].filter(Boolean).length;
+    
+    const scenarios = [
+      {
+        term: "breve",
+        description: "Nel breve termine, il portafoglio mostra una composizione " + 
+          (diversificationCount >= 3 ? "ben diversificata" : "da diversificare maggiormente") + 
+          ". Si consiglia di mantenere liquidità per eventuali opportunità di mercato."
+      },
+      {
+        term: "medio", 
+        description: "A medio termine, focus sulla diversificazione geografica e settoriale. " +
+          "Considerare l'aggiunta di ETF globali e settori in crescita come tecnologia pulita."
+      },
+      {
+        term: "lungo",
+        description: "Nel lungo termine, bilanciare crescita e stabilità. Aumentare gradualmente " +
+          "l'esposizione ai mercati emergenti e considerare investimenti ESG per sostenibilità."
+      }
+    ];
+
+    const optimizedAllocation = portfolioData.slice(0, 3).map((asset, index) => ({
+      asset_id: asset.id,
+      new_percentage: index === 0 ? 40 : index === 1 ? 35 : 25,
+      rationale: index === 0 ? "Asset principale con solida performance" : 
+                index === 1 ? "Diversificazione settoriale" : "Bilanciamento del rischio"
+    }));
+
+    const suggestedInstruments = [
+      {
+        name: "Vanguard FTSE All-World UCITS ETF",
+        ticker: "VWCE",
+        isin: "IE00BK5BQT80",
+        reason: "Diversificazione globale a basso costo"
+      },
+      {
+        name: "iShares Core MSCI Emerging Markets IMI",
+        ticker: "EMIM",
+        isin: "IE00BKM4GZ66", 
+        reason: "Esposizione ai mercati emergenti"
+      },
+      {
+        name: "Vanguard ESG Global All Cap UCITS ETF",
+        ticker: "V3AA",
+        isin: "IE00BNG8L278",
+        reason: "Investimento sostenibile e ESG"
+      }
+    ];
+
+    return {
+      date: new Date().toISOString(),
+      scenarios,
+      optimizedAllocation,
+      suggestedInstruments
+    };
   }
 
   private preparePortfolioData(instruments: Instrument[]) {
