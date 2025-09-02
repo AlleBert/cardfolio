@@ -1,0 +1,371 @@
+{
+  "instruments": [
+    {
+      "name": "Bitcoin USD",
+      "ticker": "BTC-USD",
+      "type": "crypto",
+      "investedAmount": "10000",
+      "currency": "USD",
+      "currentPrice": "108444.664",
+      "priceLastUpdated": "2025-08-29T17:31:45.653Z",
+      "id": "b67b51e6-3ccf-43e4-82ae-87ca467b01c2",
+      "isin": null,
+      "createdAt": "2025-08-29T12:39:59.976Z"
+    },
+    {
+      "name": "Vanguard FTSE All-World U.ETF R",
+      "ticker": "VWCE.DE",
+      "type": "ETF",
+      "investedAmount": "10000",
+      "currency": "USD",
+      "currentPrice": "135.48",
+      "priceLastUpdated": "2025-08-29T17:31:45.548Z",
+      "id": "625f1349-57cf-4014-b15f-16b8b42137f1",
+      "isin": null,
+      "createdAt": "2025-08-29T12:48:01.190Z"
+    },
+    {
+      "name": "Vanguard FTSE Emerging Markets ",
+      "ticker": "VWO",
+      "type": "ETF",
+      "investedAmount": "6000",
+      "currency": "USD",
+      "currentPrice": "51.56",
+      "priceLastUpdated": "2025-08-29T17:31:45.589Z",
+      "id": "bc8b58b1-a0e9-4d5c-a7bd-29369ade438f",
+      "isin": null,
+      "createdAt": "2025-08-29T12:48:11.299Z"
+    }
+  ],
+  "aiAnalyses": [
+    {
+      "scenarios": [
+        {
+          "term": "breve",
+          "description": "Nel breve termine, il portafoglio mostra una composizione da diversificare maggiormente. Si consiglia di mantenere liquidità per eventuali opportunità di mercato."
+        },
+        {
+          "term": "medio",
+          "description": "A medio termine, focus sulla diversificazione geografica e settoriale. Considerare l'aggiunta di ETF globali e settori in crescita come tecnologia pulita."
+        },
+        {
+          "term": "lungo",
+          "description": "Nel lungo termine, bilanciare crescita e stabilità. Aumentare gradualmente l'esposizione ai mercati emergenti e considerare investimenti ESG per sostenibilità."
+        }
+      ],
+      "optimizedAllocation": [
+        {
+          "asset_id": "b67b51e6-3ccf-43e4-82ae-87ca467b01c2",
+          "new_percentage": 40,
+          "rationale": "Asset principale con solida performance"
+        }
+      ],
+      "suggestedInstruments": [
+        {
+          "name": "Vanguard FTSE All-World UCITS ETF",
+          "ticker": "VWCE",
+          "isin": "IE00BK5BQT80",
+          "reason": "Diversificazione globale a basso costo"
+        },
+        {
+          "name": "iShares Core MSCI Emerging Markets IMI",
+          "ticker": "EMIM",
+          "isin": "IE00BKM4GZ66",
+          "reason": "Esposizione ai mercati emergenti"
+        },
+        {
+          "name": "Vanguard ESG Global All Cap UCITS ETF",
+          "ticker": "V3AA",
+          "isin": "IE00BNG8L278",
+          "reason": "Investimento sostenibile e ESG"
+        }
+      ],
+      "portfolioSnapshot": [
+        {
+          "name": "Bitcoin USD",
+          "ticker": "BTC-USD",
+          "type": "crypto",
+          "investedAmount": "10000",
+          "currency": "USD",
+          "currentPrice": "110609.234",
+          "priceLastUpdated": "2025-08-29T12:39:59.975Z",
+          "id": "b67b51e6-3ccf-43e4-82ae-87ca467b01c2",
+          "isin": null,
+          "createdAt": "2025-08-29T12:39:59.976Z"
+        }
+      ],
+      "id": "f27da11b-68b6-4888-b1a1-0b5e944b4e87",
+      "date": "2025-08-29T12:40:06.691Z"
+    },
+    {
+      "scenarios": [
+        {
+          "term": "breve",
+          "description": "Nel breve termine, le tensioni geopolitiche e la volatilità dei mercati potrebbero influenzare negativamente il portafoglio. La crescita economica potrebbe rallentare, e i tassi di interesse potrebbero continuare a salire, rendendo meno attraente l'investimento in criptovalute."
+        },
+        {
+          "term": "medio",
+          "description": "Nel medio termine, la situazione geopolitica potrebbe stabilizzarsi, e i mercati potrebbero iniziare a riprendersi. La tecnologia pulita e la sanità digitale potrebbero continuare a crescere, offrendo opportunità di investimento."
+        },
+        {
+          "term": "lungo",
+          "description": "Nel lungo termine, la transizione verso un'economia più sostenibile e la crescita dei mercati emergenti potrebbero offrire opportunità di investimento a lungo termine. La volatilità delle criptovalute potrebbe diminuire, rendendole più attraenti per gli investitori a lungo termine."
+        }
+      ],
+      "optimizedAllocation": [
+        {
+          "asset_id": "b67b51e6-3ccf-43e4-82ae-87ca467b01c2",
+          "new_percentage": 50,
+          "rationale": "Ridurre l'esposizione alle criptovalute per ridurre il rischio e aumentare la diversificazione del portafoglio."
+        }
+      ],
+      "suggestedInstruments": [
+        {
+          "name": "iShares Global Clean Energy UCITS ETF",
+          "ticker": "INRG",
+          "isin": "IE00B1XNHC34",
+          "reason": "Investire nella tecnologia pulita per sfruttare la crescita di questo settore in espansione."
+        },
+        {
+          "name": "Amundi ETF MSCI Emerging Markets UCITS ETF",
+          "ticker": "LU1681047238",
+          "isin": "LU1681047238",
+          "reason": "Investire nei mercati emergenti per sfruttare la crescita economica e la diversificazione del portafoglio."
+        },
+        {
+          "name": "Invesco EQQQ NASDAQ-100 UCITS ETF",
+          "ticker": "EQQQ",
+          "isin": "IE00B3WJKG14",
+          "reason": "Investire nella tecnologia e nel settore della sanità digitale per sfruttare la crescita di questi settori in espansione."
+        }
+      ],
+      "portfolioSnapshot": [
+        {
+          "name": "Bitcoin USD",
+          "ticker": "BTC-USD",
+          "type": "crypto",
+          "investedAmount": "10000",
+          "currency": "USD",
+          "currentPrice": "110541.195",
+          "priceLastUpdated": "2025-08-29T12:44:47.789Z",
+          "id": "b67b51e6-3ccf-43e4-82ae-87ca467b01c2",
+          "isin": null,
+          "createdAt": "2025-08-29T12:39:59.976Z"
+        }
+      ],
+      "id": "faf6ef9e-9245-458a-8031-fbdb337c3b2d",
+      "date": "2025-08-29T12:45:42.899Z"
+    },
+    {
+      "scenarios": [
+        {
+          "term": "breve",
+          "description": "Nel breve termine, considerando la volatilità dei mercati e la tendenza al rialzo dei tassi di interesse, è probabile che le criptovalute, come il Bitcoin, continuino a mostrare oscillazioni significative. Pertanto, è importante diversificare il portafoglio per ridurre il rischio."
+        },
+        {
+          "term": "medio",
+          "description": "A medio termine, la crescita delle tecnologie pulite e della sanità digitale potrebbe offrire opportunità di investimento interessanti. Tuttavia, è fondamentale monitorare l'evoluzione dell'inflazione e delle tensioni geopolitiche per adeguare la strategia di investimento."
+        },
+        {
+          "term": "lungo",
+          "description": "Nel lungo termine, l'attenzione verso la sostenibilità e le infrastrutture potrebbe portare a rendimenti positivi per gli investimenti in questi settori. Sarà cruciale selezionare strumenti finanziari che siano resilienti alle fluttuazioni del mercato e che offrano una crescita costante nel tempo."
+        }
+      ],
+      "optimizedAllocation": [
+        {
+          "asset_id": "b67b51e6-3ccf-43e4-82ae-87ca467b01c2",
+          "new_percentage": 30,
+          "rationale": "Ridurre l'esposizione al Bitcoin per diversificare il portafoglio e ridurre il rischio."
+        }
+      ],
+      "suggestedInstruments": [
+        {
+          "name": "iShares Global Clean Energy UCITS ETF",
+          "ticker": "INRG",
+          "isin": "IE00B1XNHC34",
+          "reason": "Per approfittare della crescita delle tecnologie pulite e ridurre l'impatto ambientale del portafoglio."
+        },
+        {
+          "name": "Amundi ETF S&P 500 Health Care UCITS ETF",
+          "ticker": "HCHU",
+          "isin": "LU1681040219",
+          "reason": "Per investire nel settore della sanità digitale e approfittare della crescita delle tecnologie mediche innovative."
+        },
+        {
+          "name": "iShares Emerging Markets Dividend UCITS ETF",
+          "ticker": "IEYE",
+          "isin": "IE00B1XNHD50",
+          "reason": "Per accedere ai mercati emergenti e beneficiare dei dividendi delle aziende in crescita."
+        }
+      ],
+      "portfolioSnapshot": [
+        {
+          "name": "Bitcoin USD",
+          "ticker": "BTC-USD",
+          "type": "crypto",
+          "investedAmount": "10000",
+          "currency": "USD",
+          "currentPrice": "110469.68",
+          "priceLastUpdated": "2025-08-29T12:46:48.565Z",
+          "id": "b67b51e6-3ccf-43e4-82ae-87ca467b01c2",
+          "isin": null,
+          "createdAt": "2025-08-29T12:39:59.976Z"
+        }
+      ],
+      "id": "f002c1c7-06ae-4d28-9124-67c2edcf4118",
+      "date": "2025-08-29T12:47:31.204Z"
+    },
+    {
+      "scenarios": [
+        {
+          "term": "breve",
+          "description": "Nel breve termine, ci aspettiamo una maggiore volatilità nei mercati finanziari a causa delle tensioni geopolitiche e dell'impatto dell'inflazione. Tuttavia, le opportunità di crescita nelle tecnologie pulite e nella sanità digitale potrebbero offrire rendimenti interessanti. Sarà importante monitorare da vicino i tassi di interesse e l'andamento delle valute, in particolare il dollaro statunitense."
+        },
+        {
+          "term": "medio",
+          "description": "Nel medio termine, l'attenzione si sposterà sulla sostenibilità e sulla tecnologia, con un focus sulle infrastrutture e sulla crescita dei mercati emergenti. Sarà fondamentale diversificare il portafoglio per cogliere queste opportunità e mitigare i rischi associati alle tensioni geopolitiche e ai cambiamenti economici."
+        },
+        {
+          "term": "lungo",
+          "description": "Nel lungo termine, ci aspettiamo una maggiore stabilità nei mercati finanziari, con un focus sulla crescita sostenibile e sulla tecnologia. Sarà importante investire in settori che offrono rendimenti a lungo termine, come le infrastrutture e la sanità digitale, e diversificare il portafoglio per minimizzare i rischi."
+        }
+      ],
+      "optimizedAllocation": [
+        {
+          "asset_id": "b67b51e6-3ccf-43e4-82ae-87ca467b01c2",
+          "new_percentage": 20,
+          "rationale": "Ridurre l'esposizione al Bitcoin per diversificare il portafoglio e ridurre il rischio associato alle fluttuazioni del mercato delle criptovalute."
+        }
+      ],
+      "suggestedInstruments": [
+        {
+          "name": "iShares Global Clean Energy UCITS ETF",
+          "ticker": "INRG",
+          "isin": "IE00B1XNHC34",
+          "reason": "Investire nelle tecnologie pulite per cogliere le opportunità di crescita nel settore dell'energia rinnovabile."
+        },
+        {
+          "name": "iShares Healthcare Innovation UCITS ETF",
+          "ticker": "DRDR",
+          "isin": "IE00B6K9BQ44",
+          "reason": "Investire nella sanità digitale per cogliere le opportunità di crescita nel settore della salute."
+        },
+        {
+          "name": "iShares Emerging Markets UCITS ETF",
+          "ticker": "IEEM",
+          "isin": "IE00B3VWN518",
+          "reason": "Investire nei mercati emergenti per cogliere le opportunità di crescita in Asia e America Latina."
+        }
+      ],
+      "portfolioSnapshot": [
+        {
+          "name": "Bitcoin USD",
+          "ticker": "BTC-USD",
+          "type": "crypto",
+          "investedAmount": "10000",
+          "currency": "USD",
+          "currentPrice": "110469.68",
+          "priceLastUpdated": "2025-08-29T12:46:48.565Z",
+          "id": "b67b51e6-3ccf-43e4-82ae-87ca467b01c2",
+          "isin": null,
+          "createdAt": "2025-08-29T12:39:59.976Z"
+        }
+      ],
+      "id": "6959bd17-8472-4988-9e82-c47e0c73490a",
+      "date": "2025-08-29T12:47:34.686Z"
+    },
+    {
+      "scenarios": [
+        {
+          "term": "breve",
+          "description": "Nel breve termine, i mercati azionari potrebbero essere influenzati dalla volatilità moderata e dalle tensioni geopolitiche. La sostenibilità e la tecnologia saranno settori in crescita, mentre l'inflazione potrebbe ancora rappresentare un rischio. Pertanto, è importante mantenere una posizione cauta e diversificata."
+        },
+        {
+          "term": "medio",
+          "description": "Nel medio termine, la tendenza al rialzo dei tassi di interesse nelle economie sviluppate potrebbe influenzare i mercati azionari e obbligazionari. I settori in crescita come la tecnologia pulita e la sanità digitale potrebbero offrire opportunità di investimento, ma è importante monitorare l'impatto dell'inflazione e delle tensioni geopolitiche."
+        },
+        {
+          "term": "lungo",
+          "description": "Nel lungo termine, i mercati emergenti potrebbero offrire opportunità di crescita, in particolare in Asia e America Latina. La sostenibilità e la tecnologia saranno settori chiave, mentre la gestione del rischio e la diversificazione saranno fondamentali per navigare le incertezze geopolitiche ed economiche."
+        }
+      ],
+      "optimizedAllocation": [
+        {
+          "asset_id": "b67b51e6-3ccf-43e4-82ae-87ca467b01c2",
+          "new_percentage": 25,
+          "rationale": "La volatilità delle cryptovalute richiede una riduzione della posizione per mantenere un profilo di rischio moderato."
+        },
+        {
+          "asset_id": "625f1349-57cf-4014-b15f-16b8b42137f1",
+          "new_percentage": 30,
+          "rationale": "L'ETF Vanguard FTSE All-World U.ETF R offre una diversificazione geografica e settoriale, rendendolo un'opzione stabile per il portafoglio."
+        },
+        {
+          "asset_id": "bc8b58b1-a0e9-4d5c-a7bd-29369ade438f",
+          "new_percentage": 20,
+          "rationale": "L'ETF Vanguard FTSE Emerging Markets offre opportunità di crescita nei mercati emergenti, ma richiede una riduzione della posizione per mantenere un profilo di rischio moderato."
+        }
+      ],
+      "suggestedInstruments": [
+        {
+          "name": "iShares Global Clean Energy UCITS ETF",
+          "ticker": "INRG",
+          "isin": "IE00B1XNHC34",
+          "reason": "Il settore della tecnologia pulita è in crescita e questo ETF offre una diversificazione geografica e settoriale."
+        },
+        {
+          "name": "Vanguard Digital Health Care Index Fund",
+          "ticker": "VHILX",
+          "isin": "IE00BZ163G84",
+          "reason": "La sanità digitale è un settore in crescita e questo fondo offre una diversificazione settoriale."
+        },
+        {
+          "name": "iShares MSCI Asia ETF",
+          "ticker": "AAXJ",
+          "isin": "IE00B4LJYX26",
+          "reason": "I mercati asiatici offrono opportunità di crescita e questo ETF offre una diversificazione geografica."
+        }
+      ],
+      "portfolioSnapshot": [
+        {
+          "name": "Bitcoin USD",
+          "ticker": "BTC-USD",
+          "type": "crypto",
+          "investedAmount": "10000",
+          "currency": "USD",
+          "currentPrice": "110550.48",
+          "priceLastUpdated": "2025-08-29T12:47:18.824Z",
+          "id": "b67b51e6-3ccf-43e4-82ae-87ca467b01c2",
+          "isin": null,
+          "createdAt": "2025-08-29T12:39:59.976Z"
+        },
+        {
+          "name": "Vanguard FTSE All-World U.ETF R",
+          "ticker": "VWCE.DE",
+          "type": "ETF",
+          "investedAmount": "10000",
+          "currency": "USD",
+          "currentPrice": "136.46",
+          "priceLastUpdated": "2025-08-29T12:48:01.190Z",
+          "id": "625f1349-57cf-4014-b15f-16b8b42137f1",
+          "isin": null,
+          "createdAt": "2025-08-29T12:48:01.190Z"
+        },
+        {
+          "name": "Vanguard FTSE Emerging Markets ",
+          "ticker": "VWO",
+          "type": "ETF",
+          "investedAmount": "6000",
+          "currency": "USD",
+          "currentPrice": "51.68",
+          "priceLastUpdated": "2025-08-29T12:48:11.299Z",
+          "id": "bc8b58b1-a0e9-4d5c-a7bd-29369ade438f",
+          "isin": null,
+          "createdAt": "2025-08-29T12:48:11.299Z"
+        }
+      ],
+      "id": "d1efbefb-fe96-4024-88f5-577424ea46e1",
+      "date": "2025-08-29T12:48:37.213Z"
+    }
+  ]
+}

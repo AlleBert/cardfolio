@@ -111,43 +111,73 @@ class FinancialService {
   }
 
   private async getYahooPrice(ticker: string): Promise<MarketData | null> {
+    const symbol = ticker.toUpperCase();
+    const commonHeaders = {
+      // Some Yahoo endpoints are picky without a UA
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+      "Accept": "application/json, text/plain, */*",
+    } as Record<string, string>;
+
     try {
-      const url = `${this.YAHOO_FINANCE_API}${ticker}`;
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        return null;
+      // 1) Try chart API
+      const chartUrl = `${this.YAHOO_FINANCE_API}${encodeURIComponent(symbol)}`;
+      const chartRes = await fetch(chartUrl, { headers: commonHeaders });
+      if (chartRes.ok) {
+        const data = await chartRes.json();
+        const result = data.chart?.result?.[0];
+        if (result && result.meta) {
+          const meta = result.meta;
+          const currentPrice = meta.regularMarketPrice ?? meta.previousClose;
+          const previousClose = meta.previousClose ?? currentPrice;
+          if (currentPrice != null && previousClose != null) {
+            const change = currentPrice - previousClose;
+            const changePercent = previousClose !== 0 ? (change / previousClose) * 100 : 0;
+            return {
+              symbol,
+              price: currentPrice,
+              change,
+              changePercent,
+              currency: meta.currency || "USD",
+              lastUpdate: new Date(),
+            };
+          }
+        }
       }
 
-      const data = await response.json();
-      const result = data.chart?.result?.[0];
-      
-      if (!result) {
-        return null;
+      // 2) Fallback: quote API (often more reliable for last price)
+      const quoteUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbol)}`;
+      const quoteRes = await fetch(quoteUrl, { headers: commonHeaders });
+      if (quoteRes.ok) {
+        const q = await quoteRes.json();
+        const quote = q.quoteResponse?.result?.[0];
+        if (quote) {
+          const currentPrice = quote.regularMarketPrice ?? quote.postMarketPrice ?? quote.preMarketPrice;
+          const previousClose = quote.regularMarketPreviousClose ?? quote.previousClose ?? currentPrice;
+          if (currentPrice != null) {
+            const change = previousClose != null ? (currentPrice - previousClose) : 0;
+            const changePercent = previousClose ? (change / previousClose) * 100 : 0;
+            return {
+              symbol,
+              price: currentPrice,
+              change,
+              changePercent,
+              currency: quote.currency || "USD",
+              lastUpdate: new Date(),
+            };
+          }
+        }
       }
 
-      const meta = result.meta;
-      const currentPrice = meta.regularMarketPrice || meta.previousClose;
-      const previousClose = meta.previousClose;
-      const change = currentPrice - previousClose;
-      const changePercent = (change / previousClose) * 100;
-
-      return {
-        symbol: ticker,
-        price: currentPrice,
-        change,
-        changePercent,
-        currency: meta.currency || "USD",
-        lastUpdate: new Date(),
-      };
+      return null;
     } catch (error) {
-      console.error(`Yahoo price error for ${ticker}:`, error);
+      console.error(`Yahoo price error for ${symbol}:`, error);
       return null;
     }
   }
 
   private async getAlphaVantagePrice(ticker: string): Promise<MarketData> {
-    const url = `${this.ALPHA_VANTAGE_API}?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=${this.ALPHA_VANTAGE_KEY}`;
+    const symbol = ticker.toUpperCase();
+    const url = `${this.ALPHA_VANTAGE_API}?function=GLOBAL_QUOTE&symbol=${encodeURIComponent(symbol)}&apikey=${this.ALPHA_VANTAGE_KEY}`;
     
     const response = await fetch(url);
     if (!response.ok) {
@@ -155,15 +185,17 @@ class FinancialService {
     }
 
     const data = await response.json();
-    const quote = data["Global Quote"];
-
-    if (!quote || !quote["05. price"]) {
+    const quote = data["Global Quote"]; 
+    const rawPrice = quote?.["05. price"];
+    if (!quote || rawPrice == null || rawPrice === "") {
       throw new Error("No price data available");
     }
 
-    const price = parseFloat(quote["05. price"]);
-    const change = parseFloat(quote["09. change"]);
-    const changePercent = parseFloat(quote["10. change percent"].replace("%", ""));
+    const price = parseFloat(rawPrice);
+    const rawChange = quote["09. change"] ?? "0";
+    const rawChangePct = (quote["10. change percent"] ?? "0").toString().replace("%", "");
+    const change = isNaN(parseFloat(rawChange)) ? 0 : parseFloat(rawChange);
+    const changePercent = isNaN(parseFloat(rawChangePct)) ? 0 : parseFloat(rawChangePct);
 
     return {
       symbol: ticker,

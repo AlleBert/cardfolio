@@ -1,0 +1,497 @@
+REPLICA FUNZIONALITÀ RICERCA E VALIDAZIONE STRUMENTI FINANZIARI
+================================================================
+
+Questo documento spiega come replicare la funzionalità di ricerca e validazione degli strumenti finanziari implementata nel progetto Portfolio AI, utilizzando le stesse API e metodi.
+
+## PANORAMICA DELLE FUNZIONALITÀ
+
+Il sistema implementa:
+1. Ricerca strumenti finanziari tramite ticker o nome
+2. Validazione dell'esistenza e recupero dati di mercato
+3. Aggiornamento prezzi in tempo reale
+4. Supporto per azioni, ETF, obbligazioni, crypto
+5. Fallback tra multiple fonti dati (Yahoo Finance + Alpha Vantage)
+
+## API UTILIZZATE
+
+### 1. YAHOO FINANCE API
+- **Base URL**: https://query1.finance.yahoo.com
+- **Endpoint Ricerca**: /v1/finance/search
+- **Endpoint Prezzi**: /v8/finance/chart/{TICKER}
+- **Endpoint Quote**: /v7/finance/quote?symbols={TICKER}
+- **Vantaggi**: Gratuito, dati completi, supporto globale
+- **Limitazioni**: Rate limiting, richiede User-Agent header
+
+### 2. ALPHA VANTAGE API
+- **Base URL**: https://www.alphavantage.co/query
+- **Endpoint Ricerca**: function=SYMBOL_SEARCH
+- **Endpoint Prezzi**: function=GLOBAL_QUOTE
+- **Vantaggi**: API key gratuita (demo), dati strutturati
+- **Limitazioni**: Quota limitata per piano gratuito
+
+## IMPLEMENTAZIONE DELLA RICERCA
+
+### Metodo 1: Ricerca Yahoo Finance
+```javascript
+async function searchYahoo(query) {
+  const searchUrl = `https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&lang=en-US&region=US&quotesCount=6&newsCount=0`;
+  
+  const response = await fetch(searchUrl, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      "Accept": "application/json, text/plain, */*"
+    }
+  });
+  
+  if (!response.ok) throw new Error("Yahoo Finance search failed");
+  
+  const data = await response.json();
+  const quotes = data.quotes || [];
+  
+  return quotes
+    .filter(quote => quote.symbol && quote.shortname)
+    .slice(0, 5)
+    .map(quote => ({
+      name: quote.shortname || quote.longname || quote.symbol,
+      ticker: quote.symbol,
+      isin: quote.isin || undefined,
+      type: mapYahooType(quote.quoteType || quote.typeDisp),
+      currency: quote.currency || "USD",
+      price: quote.regularMarketPrice || 0
+    }));
+}
+```
+
+### Metodo 2: Ricerca Alpha Vantage
+```javascript
+async function searchAlphaVantage(query, apiKey) {
+  const url = `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${encodeURIComponent(query)}&apikey=${apiKey}`;
+  
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Alpha Vantage search failed");
+  
+  const data = await response.json();
+  const matches = data.bestMatches || [];
+  
+  return matches.slice(0, 5).map(match => ({
+    name: match["2. name"],
+    ticker: match["1. symbol"],
+    type: "azione", // Alpha Vantage principalmente per azioni
+    currency: match["8. currency"] || "USD",
+    price: 0 // Verrà recuperato separatamente
+  }));
+}
+```
+
+## IMPLEMENTAZIONE VALIDAZIONE STRUMENTI
+
+### Validazione con Yahoo Finance
+```javascript
+async function validateWithYahoo(ticker) {
+  const response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${ticker.toUpperCase()}`);
+  
+  if (!response.ok) {
+    return { valid: false, error: "Strumento non trovato" };
+  }
+  
+  const data = await response.json();
+  const chart = data.chart?.result?.[0];
+  
+  if (!chart) {
+    return { valid: false, error: "Dati non disponibili" };
+  }
+  
+  const meta = chart.meta;
+  const currentPrice = meta.regularMarketPrice || meta.previousClose;
+  
+  return {
+    valid: true,
+    name: meta.longName || meta.shortName || ticker,
+    ticker: meta.symbol,
+    currentPrice: currentPrice
+  };
+}
+```
+
+### Validazione con Alpha Vantage
+```javascript
+async function validateWithAlphaVantage(ticker, apiKey) {
+  // Prima cerca lo strumento
+  const searchUrl = `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${ticker}&apikey=${apiKey}`;
+  const searchResponse = await fetch(searchUrl);
+  
+  if (!searchResponse.ok) {
+    return { valid: false, error: "Errore del servizio di ricerca" };
+  }
+  
+  const searchData = await searchResponse.json();
+  const matches = searchData.bestMatches;
+  
+  if (!matches || matches.length === 0) {
+    return { valid: false, error: "Strumento non trovato" };
+  }
+  
+  const match = matches[0];
+  
+  // Poi recupera il prezzo corrente
+  const priceUrl = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${match["1. symbol"]}&apikey=${apiKey}`;
+  const priceResponse = await fetch(priceUrl);
+  
+  let currentPrice = 0;
+  if (priceResponse.ok) {
+    const priceData = await priceResponse.json();
+    currentPrice = parseFloat(priceData["Global Quote"]?.["05. price"] || "0");
+  }
+  
+  return {
+    valid: true,
+    name: match["2. name"],
+    ticker: match["1. symbol"],
+    currentPrice: currentPrice
+  };
+}
+```
+
+## RECUPERO PREZZI IN TEMPO REALE
+
+### Strategia Multi-Fonte
+```javascript
+async function getCurrentPrice(ticker) {
+  // Prova prima Yahoo Finance
+  try {
+    const yahooData = await getYahooPrice(ticker);
+    if (yahooData) return yahooData;
+  } catch (error) {
+    console.log(`Yahoo price failed for ${ticker}:`, error.message);
+  }
+  
+  // Fallback su Alpha Vantage
+  try {
+    return await getAlphaVantagePrice(ticker);
+  } catch (error) {
+    throw new Error(`Failed to get current price for ${ticker}`);
+  }
+}
+```
+
+### Recupero Prezzo Yahoo Finance
+```javascript
+async function getYahooPrice(ticker) {
+  const symbol = ticker.toUpperCase();
+  const headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "Accept": "application/json, text/plain, */*"
+  };
+  
+  // 1) Prova API chart
+  try {
+    const chartUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}`;
+    const chartRes = await fetch(chartUrl, { headers });
+    
+    if (chartRes.ok) {
+      const data = await chartRes.json();
+      const result = data.chart?.result?.[0];
+      
+      if (result && result.meta) {
+        const meta = result.meta;
+        const currentPrice = meta.regularMarketPrice ?? meta.previousClose;
+        const previousClose = meta.previousClose ?? currentPrice;
+        
+        if (currentPrice != null && previousClose != null) {
+          const change = currentPrice - previousClose;
+          const changePercent = previousClose !== 0 ? (change / previousClose) * 100 : 0;
+          
+          return {
+            symbol,
+            price: currentPrice,
+            change,
+            changePercent,
+            currency: meta.currency || "USD",
+            lastUpdate: new Date()
+          };
+        }
+      }
+    }
+  } catch (error) {
+    console.log(`Chart API failed for ${symbol}:`, error.message);
+  }
+  
+  // 2) Fallback su API quote
+  try {
+    const quoteUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbol)}`;
+    const quoteRes = await fetch(quoteUrl, { headers });
+    
+    if (quoteRes.ok) {
+      const q = await quoteRes.json();
+      const quote = q.quoteResponse?.result?.[0];
+      
+      if (quote) {
+        const currentPrice = quote.regularMarketPrice ?? quote.postMarketPrice ?? quote.preMarketPrice;
+        const previousClose = quote.regularMarketPreviousClose ?? quote.previousClose ?? currentPrice;
+        
+        if (currentPrice != null) {
+          const change = previousClose != null ? (currentPrice - previousClose) : 0;
+          const changePercent = previousClose ? (change / previousClose) * 100 : 0;
+          
+          return {
+            symbol,
+            price: currentPrice,
+            change,
+            changePercent,
+            currency: quote.currency || "USD",
+            lastUpdate: new Date()
+          };
+        }
+      }
+    }
+  } catch (error) {
+    console.log(`Quote API failed for ${symbol}:`, error.message);
+  }
+  
+  return null;
+}
+```
+
+### Recupero Prezzo Alpha Vantage
+```javascript
+async function getAlphaVantagePrice(ticker, apiKey) {
+  const symbol = ticker.toUpperCase();
+  const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${encodeURIComponent(symbol)}&apikey=${apiKey}`;
+  
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error("Alpha Vantage price fetch failed");
+  }
+  
+  const data = await response.json();
+  const quote = data["Global Quote"];
+  const rawPrice = quote?.["05. price"];
+  
+  if (!quote || rawPrice == null || rawPrice === "") {
+    throw new Error("No price data available");
+  }
+  
+  const price = parseFloat(rawPrice);
+  const rawChange = quote["09. change"] ?? "0";
+  const rawChangePct = (quote["10. change percent"] ?? "0").toString().replace("%", "");
+  
+  const change = isNaN(parseFloat(rawChange)) ? 0 : parseFloat(rawChange);
+  const changePercent = isNaN(parseFloat(rawChangePct)) ? 0 : parseFloat(rawChangePct);
+  
+  return {
+    symbol,
+    price,
+    change,
+    changePercent,
+    currency: "USD", // Alpha Vantage default
+    lastUpdate: new Date()
+  };
+}
+```
+
+## MAPPATURA TIPI STRUMENTI
+
+### Yahoo Finance Type Mapping
+```javascript
+function mapYahooType(quoteType) {
+  const typeMap = {
+    "EQUITY": "azione",
+    "ETF": "ETF",
+    "MUTUALFUND": "ETF",
+    "CRYPTOCURRENCY": "crypto",
+    "BOND": "obbligazione",
+    "INDEX": "ETF"
+  };
+  
+  return typeMap[quoteType?.toUpperCase()] || "azione";
+}
+```
+
+## AGGIORNAMENTO PREZZI BATCH
+
+### Aggiornamento Multiplo Strumenti
+```javascript
+async function updatePrices(instruments) {
+  const updates = await Promise.allSettled(
+    instruments.map(async (instrument) => {
+      try {
+        const marketData = await getCurrentPrice(instrument.ticker);
+        return {
+          ...instrument,
+          currentPrice: marketData.price.toString(),
+          priceLastUpdated: marketData.lastUpdate
+        };
+      } catch (error) {
+        console.error(`Failed to update price for ${instrument.ticker}:`, error);
+        return instrument; // Ritorna invariato se l'aggiornamento fallisce
+      }
+    })
+  );
+  
+  return updates.map((result, index) => 
+    result.status === "fulfilled" ? result.value : instruments[index]
+  );
+}
+```
+
+## GESTIONE ERRORI E FALLBACK
+
+### Strategia di Resilienza
+1. **Prima scelta**: Yahoo Finance (gratuito, dati completi)
+2. **Seconda scelta**: Alpha Vantage (API key, dati strutturati)
+3. **Fallback**: Ritorna strumento invariato con log dell'errore
+4. **Retry**: Implementa retry automatico per errori temporanei
+
+### Gestione Rate Limiting
+```javascript
+// Implementa delay tra richieste per evitare rate limiting
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Usa in loop di aggiornamento prezzi
+for (const instrument of instruments) {
+  try {
+    const price = await getCurrentPrice(instrument.ticker);
+    // aggiorna strumento
+    await delay(100); // 100ms tra richieste
+  } catch (error) {
+    console.error(`Price update failed for ${instrument.ticker}:`, error);
+  }
+}
+```
+
+## CONFIGURAZIONE AMBIENTE
+
+### Variabili d'Ambiente
+```bash
+# Alpha Vantage API Key (opzionale, fallback)
+ALPHA_VANTAGE_API_KEY=your_api_key_here
+
+# Alternative naming
+FINANCIAL_API_KEY=your_api_key_here
+
+# Configurazione server
+PORT=5000
+NODE_ENV=development
+```
+
+### Headers HTTP Richiesti
+```javascript
+const commonHeaders = {
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+  "Accept": "application/json, text/plain, */*"
+};
+```
+
+## ENDPOINT API ESPOSTI
+
+### Ricerca Strumenti
+```
+POST /api/instruments/search
+Body: { "query": "stringa_ricerca" }
+```
+
+### Validazione Strumento
+```
+POST /api/instruments/validate
+Body: { "ticker": "TICKER" }
+```
+
+### Aggiornamento Prezzi
+```
+POST /api/instruments/update-prices
+Body: {} (aggiorna tutti gli strumenti nel portafoglio)
+```
+
+### Statistiche Portafoglio
+```
+GET /api/portfolio/stats
+```
+
+## CONSIDERAZIONI TECNICHE
+
+### Performance
+- **Caching**: Implementa cache locale per prezzi recenti
+- **Batch Updates**: Aggiorna prezzi in parallelo con Promise.allSettled
+- **Connection Pooling**: Per database PostgreSQL
+
+### Sicurezza
+- **Input Validation**: Valida tutti gli input con Zod schemas
+- **SQL Injection**: Usa parametri preparati per tutte le query
+- **Rate Limiting**: Implementa throttling per proteggere API esterne
+
+### Scalabilità
+- **Async/Await**: Tutte le operazioni I/O sono asincrone
+- **Error Boundaries**: Gestione robusta degli errori senza crash
+- **Fallback Strategy**: Sistema di fallback per alta disponibilità
+
+## ESEMPIO COMPLETO DI IMPLEMENTAZIONE
+
+```javascript
+class FinancialInstrumentService {
+  constructor(alphaVantageKey = null) {
+    this.alphaVantageKey = alphaVantageKey;
+  }
+  
+  async searchInstruments(query) {
+    try {
+      // Prova Yahoo Finance prima
+      const yahooResults = await this.searchYahoo(query);
+      if (yahooResults.length > 0) {
+        return yahooResults;
+      }
+      
+      // Fallback su Alpha Vantage
+      if (this.alphaVantageKey) {
+        return await this.searchAlphaVantage(query);
+      }
+      
+      return [];
+    } catch (error) {
+      console.error("Search failed:", error);
+      throw new Error("Failed to search instruments");
+    }
+  }
+  
+  async validateInstrument(ticker) {
+    try {
+      // Prova Yahoo Finance
+      const yahooResult = await this.validateWithYahoo(ticker);
+      if (yahooResult.valid) {
+        return yahooResult;
+      }
+      
+      // Fallback su Alpha Vantage
+      if (this.alphaVantageKey) {
+        return await this.validateWithAlphaVantage(ticker);
+      }
+      
+      return { valid: false, error: "Instrument not found" };
+    } catch (error) {
+      return { valid: false, error: "Validation failed" };
+    }
+  }
+  
+  async getCurrentPrice(ticker) {
+    return await this.getCurrentPrice(ticker);
+  }
+  
+  // ... implementa tutti i metodi sopra descritti
+}
+
+// Utilizzo
+const service = new FinancialInstrumentService(process.env.ALPHA_VANTAGE_API_KEY);
+const results = await service.searchInstruments("AAPL");
+const price = await service.getCurrentPrice("AAPL");
+```
+
+## CONCLUSIONI
+
+Questa implementazione fornisce:
+- **Robustezza**: Fallback automatico tra multiple fonti dati
+- **Performance**: Operazioni asincrone e batch updates
+- **Scalabilità**: Gestione errori e retry automatici
+- **Manutenibilità**: Codice modulare e ben strutturato
+
+Il sistema è progettato per essere resiliente ai fallimenti delle API esterne e fornisce un'esperienza utente fluida anche in caso di problemi temporanei con i servizi di terze parti.

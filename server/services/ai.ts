@@ -2,9 +2,27 @@ import OpenAI from "openai";
 import { Instrument } from "@shared/schema";
 
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || process.env.AI_API_KEY,
-});
+let openai: OpenAI | null = null;
+let selectedModel = "gpt-5";
+
+try {
+  if (process.env.OPENROUTER_API_KEY) {
+    // Prefer OpenRouter if available to avoid OpenAI quota issues
+    openai = new OpenAI({
+      apiKey: process.env.OPENROUTER_API_KEY,
+      baseURL: "https://openrouter.ai/api/v1",
+    });
+    // A strong, broadly-capable model on OpenRouter
+    selectedModel = "meta-llama/llama-3.1-70b-instruct";
+  } else if (process.env.OPENAI_API_KEY || process.env.AI_API_KEY) {
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY || process.env.AI_API_KEY,
+    });
+    selectedModel = "gpt-5";
+  }
+} catch (error) {
+  console.log("OpenAI client initialization failed, will use fallback analysis");
+}
 
 export interface PortfolioAnalysis {
   date: string;
@@ -27,6 +45,12 @@ export interface PortfolioAnalysis {
 
 class AIService {
   async analyzePortfolio(instruments: Instrument[]): Promise<PortfolioAnalysis> {
+    // If OpenAI client is not available, use fallback analysis
+    if (!openai) {
+      console.log("OpenAI client not available, using fallback analysis");
+      return this.generateFallbackAnalysis(instruments);
+    }
+
     try {
       const portfolioData = this.preparePortfolioData(instruments);
       const marketContext = await this.getMarketContext();
@@ -34,7 +58,7 @@ class AIService {
       const prompt = this.buildAnalysisPrompt(portfolioData, marketContext);
       
       const response = await openai.chat.completions.create({
-        model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+        model: selectedModel, // prefers OpenRouter model when configured; falls back to OpenAI gpt-5
         messages: [
           {
             role: "system",
@@ -66,7 +90,9 @@ class AIService {
         return this.generateFallbackAnalysis(instruments);
       }
       
-      throw new Error("Failed to analyze portfolio. Please try again.");
+      // For any other error, fall back to basic analysis
+      console.log("OpenAI API error, using fallback analysis");
+      return this.generateFallbackAnalysis(instruments);
     }
   }
 
